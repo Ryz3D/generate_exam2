@@ -1,0 +1,50 @@
+<xml>
+
+<settings>
+decimal_separator = "{,}"
+</settings>
+
+<variables>
+tasks = ["coil1"]
+
+import math
+pi = math.pi
+mu_0 = 1.25663706 * 10 ** -5
+
+fach = "MND"
+semester = "WS 2021"
+
+leer = "\\vspace{\\baselineskip}"
+</variables>
+
+<latex>
+\documentclass{article}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{amsmath}
+\usepackage{textgreek}
+
+\geometry{
+a4paper,
+total={170mm,257mm},
+left=20mm,
+top=20mm,
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[RE,LO]{Name:}
+\fancyfoot[RE,LO]{Gesamtpunktzahl: {{ POINTS_TOTAL }}P}
+\fancyfoot[LE,RO]{Seite \thepage/\pageref{LastPage}}
+
+\begin{document}
+
+Fachbereich {{ fach }} / {{ semester }}
+
+{{ TASKS }}
+
+\end{document}
+</latex>
+
+</xml>
