@@ -23,6 +23,7 @@ TODO:
             POINTS
 """
 
+import os
 from environments.exam import gen_env
 
 import xml.etree.ElementTree as ET
@@ -351,6 +352,8 @@ def load_base(path):
 def generate_latex(name):
     res1, res2 = process_file(load_base(name + file_ext))
 
+    if not os.path.isdir("aux_files"):
+        os.mkdir("aux_files")
     with open("aux_files/" + name + "_aufg.tex", "w", encoding="utf-8") as f:
         f.write(res1)
     with open("aux_files/" + name + "_lösg.tex", "w", encoding="utf-8") as f:
