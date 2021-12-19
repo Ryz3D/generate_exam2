@@ -5,6 +5,7 @@ pip dependencies:
     pip install jinja2
 
 TODO:
+    - zu dokumentierendes dokumentieren
     - check pdflatex accessibility
     - symbol_to_tex greek (i.e. pi -> \pi)
     - units (meter incl. centi)
@@ -22,32 +23,55 @@ TODO:
             POINTS
 """
 
+from environments.exam import gen_env
+
 import xml.etree.ElementTree as ET
-import math, random, decimal, subprocess, jinja2, time
+import math, decimal, subprocess, jinja2
 
-default_settings = {
-    "decimal_separator": ".",
-    "task_join": "\\n",
-    "subtask_join": "\\n",
-    "e_max": "2",
-    "e_min": "-2",
-}
+settings = {}
 
-# functions used in variable definition
-default_context = {
-    "rand":     lambda min, max, step: random.randint(0, int((max - min) / step)) * step + min,
-}
+# converts float to nice human-readable string
+def ftos(f, disable_exp=False):
+    if not disable_exp:
+        digits = math.floor(math.log10(f))
+        if digits < int(settings["e_min"]) or digits > int(settings["e_max"]):
+            return ftos(f * 10 ** -digits, True) + "*10^{" + str(digits) + "}"
 
-# formatters used in latex
-formatters = {
-    "val":      lambda x, v, s: ftos(v.value, s),
-    "geg":      lambda x, v, s: "${}={}$".format(x, ftos(v.value, s)),
-    "ges":      lambda x, v, s: "${}$".format(x),
-    "ges2":     lambda x, v, s: "${}$ (ansonsten mit {} rechnen)".format(x, ftos(v.value, s)),
-    "sol":      lambda x, v, s: "{}={}={}".format(x, v.expression.replace("**", "^"), ftos(v.value, s)),
-    "e_base":   lambda x, v, s: ftos(v.value / (10 ** math.floor(math.log10(v.value))), s, True),
-    "e_expo":   lambda x, v, s: str(math.floor(math.log10(v.value))),
-}
+    ctx = decimal.Context(prec=4, Emin=decimal.MIN_EMIN, Emax=decimal.MAX_EMAX)
+    s = format(ctx.create_decimal_from_float(f), "f")
+    if "." in s:
+        return s.rstrip("0").replace(".", settings["decimal_separator"])
+    else:
+        return s.replace(".", settings["decimal_separator"])
+
+# converts sub- and supertext to proper tex notation
+def symbol_to_tex(sym):
+    tex = ""
+    level = 0
+
+    for ci in range(len(sym)):
+        if sym[ci] == "^":
+            tex += "}" * level
+            level = 0
+            tex += "^{" + symbol_to_tex(sym[ci + 1:]) + "}"
+            break
+        elif sym[ci] == "_":
+            tex += "_{"
+            level += 1
+        else:
+            tex += sym[ci]
+
+    return tex + "}" * level
+
+env = gen_env({
+    "settings": lambda: settings,
+    "ftos": ftos,
+    "symbol_to_tex": symbol_to_tex,
+})
+
+default_settings = env["settings"]
+default_context = env["context"]
+default_formatters = env["formatters"]
 
 comment_separator = "#"
 file_ext = ".xml"
@@ -80,39 +104,6 @@ class BaseFile:
         self.tasks = []
         self.exec_context = {}
         self.global_vars = {}
-
-# converts float to nice human-readable string
-def ftos(f, settings, disable_exp=False):
-    if not disable_exp:
-        digits = math.floor(math.log10(f))
-        if digits < int(settings["e_min"]) or digits > int(settings["e_max"]):
-            return ftos(f * 10 ** -digits, settings, True) + "*10^{" + str(digits) + "}"
-
-    ctx = decimal.Context(prec=4, Emin=decimal.MIN_EMIN, Emax=decimal.MAX_EMAX)
-    s = format(ctx.create_decimal_from_float(f), "f")
-    if "." in s:
-        return s.rstrip("0").replace(".", settings["decimal_separator"])
-    else:
-        return s.replace(".", settings["decimal_separator"])
-
-# converts sub- and supertext to proper tex notation
-def symbol_to_tex(sym):
-    tex = ""
-    level = 0
-
-    for ci in range(len(sym)):
-        if sym[ci] == "^":
-            tex += "}" * level
-            level = 0
-            tex += "^{" + symbol_to_tex(sym[ci + 1:]) + "}"
-            break
-        elif sym[ci] == "_":
-            tex += "_{"
-            level += 1
-        else:
-            tex += sym[ci]
-
-    return tex + "}" * level
 
 # parses generic "a = b # comment" syntax, returns dict
 # exception_cb: called with part of incorrect syntax
@@ -219,7 +210,7 @@ def load_task(path, base: BaseFile):
 
     return task
 
-# sets variables
+# sets variables from definition, returns dict
 def set_vars(variables, context):
     vars = {}
 
@@ -237,12 +228,18 @@ def set_vars(variables, context):
     return vars
 
 # generates formatter handler to add variable data into formatter call
-def generate_single_formatter(vars, func, settings):
-    def handler(key, *args):
-        try:
-            return func(symbol_to_tex(key), vars[key], settings, *args)
-        except KeyError:
-            return "?"
+def generate_single_formatter(vars, func, local_settings):
+    def handler(key = None, *args):
+        global settings
+        settings = local_settings
+
+        if key == None:
+            return func(*args)
+        else:
+            try:
+                return func(symbol_to_tex(key), vars[key], *args)
+            except KeyError:
+                return "?"
 
     return handler
 
@@ -250,7 +247,7 @@ def generate_single_formatter(vars, func, settings):
 def generate_formatters(vars, settings):
     results = {}
 
-    for name, func in formatters.items():
+    for name, func in default_formatters.items():
         results[name] = generate_single_formatter(vars, func, settings)
 
     return results
@@ -350,7 +347,7 @@ def load_base(path):
 
     return base
 
-# renders file with and without solution
+# renders file with and without solution, returns nothing
 def generate_latex(name):
     res1, res2 = process_file(load_base(name + file_ext))
 
@@ -359,6 +356,7 @@ def generate_latex(name):
     with open("aux_files/" + name + "_lösg.tex", "w", encoding="utf-8") as f:
         f.write(res2)
 
+# converts path from .tex to .pdf, returns nothing
 def convert_pdf(path):
     args = "pdflatex --output-directory=aux_files -quiet -interaction nonstopmode \"{}\"".format(path)
 

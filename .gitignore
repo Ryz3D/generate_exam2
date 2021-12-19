@@ -1,0 +1,4 @@
+aux_files/*.aux
+aux_files/*.log
+__pycache__
+environments/__pycache__
