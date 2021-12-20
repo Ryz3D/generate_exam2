@@ -1,11 +1,13 @@
 <xml>
 
+<env>exam</env>
+
 <settings>
 decimal_separator = "{,}"
 </settings>
 
 <variables>
-tasks = ["coil1"]
+tasks = ["tasks/coil1_de"]
 
 import math
 pi = math.pi
@@ -14,7 +16,7 @@ mu_0 = 1.25663706 * 10 ** -5
 fach = "MND"
 semester = "WS 2021"
 
-leer = "\\vspace{\\baselineskip}"
+empty = "\\vspace{\\baselineskip}"
 </variables>
 
 <latex>

@@ -1,0 +1,51 @@
+<xml>
+
+<env>exam</env>
+
+<settings>
+</settings>
+
+<variables>
+tasks = ["tasks/coil1_en"]
+
+import math
+pi = math.pi
+mu_0 = 1.25663706 * 10 ** -5
+
+group = "MND"
+semester = "WS 2021"
+
+empty = "\\vspace{\\baselineskip}"
+</variables>
+
+<latex>
+\documentclass{article}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{amsmath}
+\usepackage{textgreek}
+
+\geometry{
+a4paper,
+total={170mm,257mm},
+left=20mm,
+top=20mm,
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[RE,LO]{Name:}
+\fancyfoot[RE,LO]{Total points: {{ POINTS_TOTAL }}P}
+\fancyfoot[LE,RO]{Page \thepage/\pageref{LastPage}}
+
+\begin{document}
+
+Group {{ group }} / {{ semester }}
+
+{{ TASKS }}
+
+\end{document}
+</latex>
+
+</xml>

@@ -1,0 +1,58 @@
+<xml>
+
+<settings>
+</settings>
+
+<variables>
+N = rand(100, 200, 10)
+r = 0.02
+l = rand(0.1, 0.2, 0.01)
+
+# 1
+A = 2 * pi * r ** 2
+L = N ** 2 * mu_0 * A / l
+
+# 2
+R_m = l / (mu_0 * A)
+</variables>
+
+<latex>
+\part*{Test 1 - Electromagnetism ({{ POINTS_TASK }}P)}
+
+The following tasks consider a coreless coil with {{ geg("N") }} turns, the radius {{ geg("r") }}m (or $r={{ e_base("r") }}*10^{ {{ e_expo("r") }} }$m and the length {{ geg("l") }}m.
+
+{{ SUBTASKS }}
+</latex>
+
+<subtask>
+<points>3</points>
+<latex>
+\subsection*{Calculate the Inductivity of the coil. ({{ POINTS }}P)}
+
+{% if SHOW_SOL %}
+\begin{gather}
+{{ sol("A") }}\text{m}^2 \\
+{{ sol("L") }}\text{H}
+\end{gather}
+{% else %}
+{{ empty * 3 }}
+{% endif %}
+</latex>
+</subtask>
+
+<subtask>
+<points>4</points>
+<latex>
+\subsection*{Calculate the magnetic resistance {{ ges("R_m") }} of the coil. ({{ POINTS }}P)}
+
+{% if SHOW_SOL %}
+\begin{gather}
+{{ sol("R_m") }}\Omega
+\end{gather}
+{% else %}
+{{ empty * 1 }}
+{% endif %}
+</latex>
+</subtask>
+
+</xml>

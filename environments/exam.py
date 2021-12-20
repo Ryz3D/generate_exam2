@@ -1,13 +1,11 @@
+from environments._envhelper import settings, ftos, symbol_to_tex
 import math, random
 
-def gen_env(funcs):
-    settings = funcs["settings"]
-    ftos = funcs["ftos"]
-    symbol_to_tex = funcs["symbol_to_tex"]
-
+def gen_env():
     return {
         # settings overrideable by files
         "settings": {
+            "precision": "4",
             "decimal_separator": ".",
             "task_join": "\\n",
             "subtask_join": "\\n",
@@ -23,7 +21,7 @@ def gen_env(funcs):
         # formatters used in latex
         "formatters": {
             "test":     lambda: symbol_to_tex(""),
-            "dec":      lambda: settings()["decimal_separator"],
+            "dec":      lambda: settings["decimal_separator"],
             "val":      lambda x, v: ftos(v.value),
             "geg":      lambda x, v: "${}={}$".format(x, ftos(v.value)),
             "ges":      lambda x, v: "${}$".format(x),
