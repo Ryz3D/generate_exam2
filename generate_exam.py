@@ -386,7 +386,7 @@ def convert_pdf(path):
 # deletes .aux and .log files
 def clean_aux(del_tex):
     for f in os.listdir("aux_files"):
-        if f.endswith(".aux") or f.endswith(".log"):
+        if f.endswith(".aux") or f.endswith(".log") or f.endswith(".out"):
             os.remove("aux_files/" + f)
         if del_tex and f.endswith(".tex"):
             os.remove("aux_files/" + f)
@@ -417,7 +417,7 @@ Options:
         -> Without this flag pdflatex is required!
     -s Generate no-solution only
         -> Normally generates both files
-    -k Keep log files (.aux and .log)
+    -k Keep log files (.aux .log .out)
     -d Delete .tex files too (keep only .pdf)
 """)
 
