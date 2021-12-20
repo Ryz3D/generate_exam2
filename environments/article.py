@@ -1,5 +1,5 @@
-from environments._envhelper import settings, ftos, symbol_to_tex
-import math, random
+import environments._envhelper
+from environments._envhelper import ftos, symbol_to_tex
 
 def unit_helper(f, u1, u2, factor):
     return "{}{}/{}{}".format(ftos(f), u1, ftos(f * factor), u2)
@@ -22,6 +22,7 @@ def gen_env():
 
         # formatters used in latex
         "formatters": {
+            "unit": lambda x, v, f: ftos(f * v.value) + environments._envhelper.settings[x + "_str"],
             "kmh":  lambda f: unit_helper(f, "$\\frac{km}{h}$", "mph", 0.62137),
             "km":   lambda f: unit_helper(f, "km", "mi", 0.62137),
             "m":    lambda f: unit_helper(f, "m", "ft", 3.28084),

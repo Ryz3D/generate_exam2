@@ -1,6 +1,7 @@
 import math, decimal
 
 settings = {}
+vars = {}
 
 # converts float to nice human-readable string
 def ftos(f, disable_exp=False):
@@ -12,9 +13,13 @@ def ftos(f, disable_exp=False):
     ctx = decimal.Context(prec=int(settings["precision"]), Emin=decimal.MIN_EMIN, Emax=decimal.MAX_EMAX)
     s = format(ctx.create_decimal_from_float(f), "f")
     if "." in s:
-        return s.rstrip("0").replace(".", settings["decimal_separator"])
+        short = s.rstrip("0").replace(".", settings["decimal_separator"])
+        if short[-1] == ".":
+            return short[:-1]
+        else:
+            return short
     else:
-        return s.replace(".", settings["decimal_separator"])
+        return s
 
 # converts sub- and supertext to proper tex notation
 def symbol_to_tex(sym):

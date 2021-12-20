@@ -1,0 +1,47 @@
+<xml>
+
+<env>article</env>
+
+<settings>
+precision = 4
+
+l_str = "km"
+A_str = "km$^2$"
+v_str = "$\frac{\text{km}}{\text{h}}$"
+</settings>
+
+<variables>
+l = 10 ** -3
+A = 10 ** -6
+v = 3.6
+</variables>
+
+<latex>
+\documentclass{article}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+
+\geometry{
+a4paper,
+total={170mm,257mm},
+left=20mm,
+top=20mm,
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[LE,RO]{Mirco Heitmann 2021}
+
+\begin{document}
+
+\section{Inspiration for formatter and text copied from \href{https://mx-schroeder.medium.com/scraped-past-disaster-the-2004-efringen-kirchen-germany-ice-collision-3128dddcbd73}{this article}.}
+
+Efringen-Kirchen is a municipality of 8697 people (as of 2020) in the extreme southwest of Germany, located in the federal state of Baden-Württemberg just {{ unit("l", 13000) }} north of Basel (Switzerland) and {{ unit("l", 2000) }} east of Schaeferhof (France). The municipality sits on the eastern bank of the Rhine River, which forms Germany’s border with France all the way from Switzerland in the south to Karlsruhe further up north.
+
+The municipality consists of several smaller towns spread out over {{ unit("A", 43750000) }}, including Istein (1280 residents as of 2011) right on the eastern bank of the Rhine River. The town of Istein (and with that the municipality) lies on the Mannheim-Basel rail line, a double-to-quad-tracked electrified main line opening in sections between 1840 and 1855. The so-called Rheintalbahn (Rhine River Valley Railway) is one of the most important rail lines in Germany, carrying around 300 trains per day with everything from regional passenger services to long-distance express trains (including international ones), freight trains and ICE high speed trains. Most of the services are handled by the DB (German national railway), but other companies including the Swiss national railway (SBB) run trains on the line as well. The section of the line near Istein is relatively old in its routing and contains a lot of turns, limiting speeds there to just {{ unit("v", 22.222222) }} while other sections allow more than twice that speed.
+
+\end{document}
+</latex>
+
+</xml>

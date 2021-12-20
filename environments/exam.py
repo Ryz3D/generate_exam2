@@ -1,4 +1,5 @@
-from environments._envhelper import settings, ftos, symbol_to_tex
+import environments._envhelper
+from environments._envhelper import ftos, symbol_to_tex
 import math, random
 
 def gen_env():
@@ -20,7 +21,7 @@ def gen_env():
 
         # formatters used in latex
         "formatters": {
-            "dec":      lambda: settings["decimal_separator"],
+            "dec":      lambda: environments._envhelper.settings["decimal_separator"],
             "val":      lambda x, v: ftos(v.value),
             "geg":      lambda x, v: "${}={}$".format(x, ftos(v.value)),
             "ges":      lambda x, v: "${}$".format(x),

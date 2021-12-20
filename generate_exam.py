@@ -2,6 +2,7 @@
 More info here: https://github.com/Ryz3D/generate_exam2
 
 TODO:
+    - show package install progress
     - symbol_to_tex greek (i.e. pi -> \pi)
     - plotting
         - per variable? buffer and change parameter
@@ -203,17 +204,20 @@ def set_vars(variables, context):
     return vars
 
 # generates formatter handler to add variable data into formatter call
-def generate_single_formatter(vars, func, local_settings):
+def generate_single_formatter(vars, func, settings):
     def handler(key = None, *args):
-        environments._envhelper.settings = local_settings
+        environments._envhelper.settings = settings
+        environments._envhelper.vars = vars
 
         if type(key) == type(""):
             # try looking up variable
+            value = None
             try:
-                return func(environments._envhelper.symbol_to_tex(key), vars[key], *args)
-            except KeyError:
-                print("WARNING: could not find variable \"" + key + "\". passing as string")
+                value = vars[key]
+            except KeyError as err:
+                print("WARNING: could not find variable \"" + err.args[0] + "\". passing as string")
                 return func(key, *args)
+            return func(environments._envhelper.symbol_to_tex(key), value, *args)
         else:
             if key == None:
                 return func()
@@ -323,7 +327,9 @@ def load_base(path):
     global env_loaded
     env_loaded = False
 
-    default_settings = default_context = default_formatters = {}
+    default_settings = {}
+    default_context = {}
+    default_formatters = {}
 
     def base_extra(e: ET.Element):
         global env_loaded
@@ -413,6 +419,7 @@ Usage:
     python generate_exam.py [OPTIONS] [FILE/FOLDER]
 
 Options:
+    -h Help
     -t Generate TeX only, no pdf conversion
         -> Without this flag pdflatex is required!
     -s Generate no-solution only

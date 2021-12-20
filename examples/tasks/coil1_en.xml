@@ -19,7 +19,7 @@ R_m = l / (mu_0 * A)
 <latex>
 \part*{Test 1 - Electromagnetism ({{ POINTS_TASK }}P)}
 
-The following tasks consider a coreless coil with {{ geg("N") }} turns, the radius {{ geg("r") }}m (or $r={{ e_base("r") }}*10^{ {{ e_expo("r") }} }$m and the length {{ geg("l") }}m.
+The following tasks consider a coreless coil with {{ geg("N") }} turns, the radius {{ geg("r") }}m (or $r={{ e_base("r") }}*10^{ {{ e_expo("r") }} }$m) and the length {{ geg("l") }}m.
 
 {{ SUBTASKS }}
 </latex>
