@@ -12,6 +12,7 @@
 \documentclass{article}
 \usepackage{geometry}
 \usepackage{fancyhdr}
+\usepackage{hyperref}
 
 \geometry{
 a4paper,
@@ -25,6 +26,8 @@ top=20mm,
 \fancyfoot[LE,RO]{Mirco Heitmann 2021}
 
 \begin{document}
+
+\section{Inspiration for formatter and text copied from \href{https://mx-schroeder.medium.com/scraped-past-disaster-the-2004-efringen-kirchen-germany-ice-collision-3128dddcbd73}{this article}.}
 
 Efringen-Kirchen is a municipality of 8697 people (as of 2020) in the extreme southwest of Germany, located in the federal state of Baden-Württemberg just {{ km(13) }} north of Basel (Switzerland) and {{ km(2) }} east of Schaeferhof (France). The municipality sits on the eastern bank of the Rhine River, which forms Germany’s border with France all the way from Switzerland in the south to Karlsruhe further up north.
 
