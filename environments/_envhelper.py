@@ -24,6 +24,11 @@ def ftos(f, disable_exp=False):
 # converts sub- and supertext to proper tex notation
 def symbol_to_tex(sym):
     tex = ""
+
+    for g in ["alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta", "iota", "kappa", "lambda", "mu", "nu", "xi", "omicron", "pi", "rho", "sigma", "tau", "upsilon", "phi", "chi", "psi", "omega"]:
+        if sym.lower().startswith(g):
+            tex = "\\"
+
     level = 0
 
     for ci in range(len(sym)):
