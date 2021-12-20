@@ -20,7 +20,6 @@ def gen_env():
 
         # formatters used in latex
         "formatters": {
-            "test":     lambda: symbol_to_tex(""),
             "dec":      lambda: settings["decimal_separator"],
             "val":      lambda x, v: ftos(v.value),
             "geg":      lambda x, v: "${}={}$".format(x, ftos(v.value)),
