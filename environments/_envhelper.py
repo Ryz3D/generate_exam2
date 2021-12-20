@@ -5,6 +5,9 @@ vars = {}
 
 # converts float to nice human-readable string
 def ftos(f, disable_exp=False):
+    if f == 0:
+        return "0"
+
     if not disable_exp:
         digits = math.floor(math.log10(f))
         if digits < int(settings["e_min"]) or digits > int(settings["e_max"]):

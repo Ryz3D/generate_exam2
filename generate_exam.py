@@ -2,25 +2,14 @@
 More info here: https://github.com/Ryz3D/generate_exam2
 
 TODO:
-    - show package install progress
-    - symbol_to_tex greek (i.e. pi -> \pi)
     - plotting
         - per variable? buffer and change parameter
-    - handbuch
-        - base
-            TASKS
-            POINTS_TOTAL
-        - task
-            SUBTASKS
-            POINTS_TASK
-        - subtask
-            POINTS
 """
 
 import xml.etree.ElementTree as ET
 import os, sys, subprocess, jinja2, importlib, environments._envhelper
 
-default_settings = {
+factory_settings = {
     "precision": "4",
     "decimal_separator": ".",
     "task_join": "\\n",
@@ -28,6 +17,8 @@ default_settings = {
     "e_max": "2",
     "e_min": "-2",
 }
+
+default_settings = {}
 default_context = {}
 default_formatters = {}
 
@@ -134,12 +125,12 @@ def parse_vars(text, base: BaseFile):
 # base: if a task is being loaded, pass its corresponding base, else itself
 def load_generic(path, base: BaseFile, extra_handler=None):
     if extra_handler == None:
-
         def extra_handler(e):
             print("WARNING: unknown tag <" + e.tag + '> in file "' + path + '"')
 
     xml = ET.parse(path)
     generic = GenericFile()
+    generic.settings = base.generics.settings or default_settings
     has_latex = False
 
     for e in xml.getroot():
@@ -237,11 +228,7 @@ def generate_formatters(vars, s):
 
 # finishes processing and inserts data, returns processed latex as string tuple (no_sol, sol)
 def process_file(base: BaseFile):
-    base.exec_context = {
-        **base.exec_context,
-        **default_context,
-    }
-
+    base.exec_context.update(**default_context)
     base.global_vars = set_vars(base.generics.variables, base.exec_context)
     for t in base.tasks:
         t.local_vars = set_vars(t.generics.variables, base.exec_context)
@@ -261,15 +248,25 @@ def process_file(base: BaseFile):
 
         task_join = base.generics.settings["task_join"].replace("\\n", "\n")
 
+        environments._envhelper.settings = base.generics.settings
         for k, v in base.global_vars.items():
-            jcontext_shared[k] = v.value
+            if type(v.value) == type(0):
+                jcontext_shared[k] = environments._envhelper.ftos(v.value)
+            else:
+                jcontext_shared[k] = v.value
 
         for t in base.tasks:
             jvars = {}
+            environments._envhelper.settings = t.generics.settings
             for k, v in t.local_vars.items():
-                jvars[k] = v.value
+                if type(v.value) == type(0):
+                    jvars[k] = environments._envhelper.ftos(v.value)
+                else:
+                    jvars[k] = v.value
 
             jcontext_task = {
+                **jcontext_shared,
+                **jvars,
                 "SUBTASKS": "",
                 "POINTS_TASK": 0,
                 **generate_formatters(
@@ -286,6 +283,7 @@ def process_file(base: BaseFile):
             for s in t.subtasks:
                 jcontext_subtask = {
                     **jcontext_shared,
+                    **jvars,
                     "POINTS": s.points,
                     **generate_formatters(
                         {
@@ -302,12 +300,7 @@ def process_file(base: BaseFile):
                 jcontext_task["POINTS_TASK"] += s.points
                 jcontext_base["POINTS_TOTAL"] += s.points
             jcontext_base["TASKS"] += (
-                jinja2.Template(t.generics.latex).render(
-                    {
-                        **jcontext_shared,
-                        **jcontext_task,
-                    }
-                )
+                jinja2.Template(t.generics.latex).render(jcontext_task)
                 + task_join
             )
 
@@ -327,14 +320,14 @@ def load_base(path):
     global env_loaded
     env_loaded = False
 
-    default_settings = {}
+    default_settings = {**factory_settings}
     default_context = {}
     default_formatters = {}
 
     def base_extra(e: ET.Element):
         global env_loaded
         if e.tag == "env":
-            load_env(e.text)
+            load_env(e.text.strip())
             env_loaded = True
 
     base = BaseFile()
