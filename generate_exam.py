@@ -242,7 +242,8 @@ def process_file(base: BaseFile):
 
         jcontext_base = {
             "TASKS": "",
-            "POINTS_TOTAL": 0,
+            "POINTSUM_TOTAL": 0,
+            "POINT_ARRAY": [],
             **generate_formatters(base.global_vars, base.generics.settings),
         }
 
@@ -268,7 +269,8 @@ def process_file(base: BaseFile):
                 **jcontext_shared,
                 **jvars,
                 "SUBTASKS": "",
-                "POINTS_TASK": 0,
+                "POINTSUM_TASK": 0,
+                "POINT_ARRAY_TASK": [],
                 **generate_formatters(
                     {
                         **base.global_vars,
@@ -297,8 +299,10 @@ def process_file(base: BaseFile):
                     # if there is an UndefinedError here, a formatter or variable could not be found
                     jinja2.Template(s.latex).render(jcontext_subtask) + subtask_join
                 )
-                jcontext_task["POINTS_TASK"] += s.points
-                jcontext_base["POINTS_TOTAL"] += s.points
+                jcontext_task["POINTSUM_TASK"] += s.points
+                jcontext_base["POINTSUM_TOTAL"] += s.points
+                jcontext_task["POINT_ARRAY_TASK"].append(s.points)
+            jcontext_base["POINT_ARRAY"].append(jcontext_task["POINTSUM_TASK"])
             jcontext_base["TASKS"] += (
                 jinja2.Template(t.generics.latex).render(jcontext_task)
                 + task_join

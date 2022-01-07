@@ -25,7 +25,7 @@ Die folgenden Aufgaben behandeln eine Luftspule mit der Windungszahl {{ geg("N")
 </latex>
 
 <subtask>
-<points>3</points>
+<points>7</points>
 <latex>
 \subsection*{Berechnen Sie die Induktivität der Spule ({{ POINTS }}P)}
 
@@ -41,7 +41,7 @@ Die folgenden Aufgaben behandeln eine Luftspule mit der Windungszahl {{ geg("N")
 </subtask>
 
 <subtask>
-<points>4</points>
+<points>6</points>
 <latex>
 \subsection*{Bestimmen Sie den magnetischen Widerstand {{ ges("R_m") }} der Spule ({{ POINTS }}P)}
 

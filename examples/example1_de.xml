@@ -7,7 +7,7 @@ decimal_separator = "{,}"
 </settings>
 
 <variables>
-tasks = ["tasks/coil1_de"]
+tasks = ["tasks/coil1_de", "tasks/coil2", "tasks/coil1_de"]
 
 import math
 pi = math.pi
@@ -37,12 +37,18 @@ top=20mm,
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[RE,LO]{Name:}
-\fancyfoot[RE,LO]{Gesamtpunktzahl: {{ POINTS_TOTAL }}P}
+\fancyfoot[RE,LO]{Gesamtpunktzahl: {{ POINTSUM_TOTAL }}P}
 \fancyfoot[LE,RO]{Seite \thepage/\pageref{LastPage}}
 
 \begin{document}
 
 Fachbereich {{ fach }} / {{ semester }}
+
+\begin{table}[]
+\begin{tabular}{ {{ taskcol(POINT_ARRAY) }} }
+{{ points(POINT_ARRAY) }}
+\end{tabular}
+\end{table}
 
 {{ TASKS }}
 

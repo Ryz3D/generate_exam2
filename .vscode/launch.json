@@ -10,8 +10,8 @@
             "request": "launch",
             "program": "generate_exam.py",
             "args": [
-                "-d",
-                "examples"
+                //"-d",
+                "examples/example1_de"
             ],
             "console": "integratedTerminal"
         }

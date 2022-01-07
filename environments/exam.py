@@ -29,5 +29,7 @@ def gen_env():
             "sol":      lambda x, v: "{}={}={}".format(x, v.expression.replace("**", "^"), ftos(v.value)),
             "e_base":   lambda x, v: ftos(v.value / (10 ** math.floor(math.log10(v.value))), True),
             "e_expo":   lambda x, v: str(math.floor(math.log10(v.value))),
+            "points":   lambda a: " & ".join(map(lambda f: str(f), a)),
+            "taskcol":  lambda a: "l" * len(a),
         }
     }
