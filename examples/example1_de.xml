@@ -36,21 +36,41 @@ top=20mm,
 
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[RE,LO]{Name:}
-\fancyfoot[RE,LO]{Gesamtpunktzahl: {{ POINTSUM_TOTAL }}P}
-\fancyfoot[LE,RO]{Seite \thepage/\pageref{LastPage}}
+%\fancyhead[RE,LO]{Name:}
+%\fancyfoot[RE,LO]{Gesamtpunktzahl: {{ POINTSUM_TOTAL }}P}
+\fancyfoot[CE, CO]{\thepage / \pageref{LastPage}}
 
 \begin{document}
 
-Fachbereich {{ fach }} / {{ semester }}
+\part*{NAME DES FACHS}
+\section*{– Schriftliche Prüfung –}
 
-\begin{table}[]
+%Fachbereich {{ fach }} / {{ semester }}
+
+SEMESTER\\
+DATUM\\
+Bearbeitungsdauer: 90 min\\
+
+Technische Hochschule Mittelhessen\\
+Fachbereich IEM\\
+Prof. Dr.-Ing. Fabian Mink\\
+
+Hier kommt viel Text hin\\
+Noch mehr Text\\
+
+
+Hier kommt dann die Tabelle mit den Punkten hin:\\
+
+
+%\begin{table}[!h]
 \begin{tabular}{ | {{ taskColLeftSep(POINT_ARRAY) }} l |}
 \hline
 {{ shortname(SHORTNAME_ARRAY) }}   &amp;  $\Sigma$ \\
 / {{ pointsof(POINT_ARRAY) }}   &amp;  /  {{ POINTSUM_TOTAL }} \\ \hline
 \end{tabular}
-\end{table}
+%\end{table}
+
+\newpage
 
 {{ TASKS }}
 
