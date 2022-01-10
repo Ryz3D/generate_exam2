@@ -45,8 +45,10 @@ top=20mm,
 Fachbereich {{ fach }} / {{ semester }}
 
 \begin{table}[]
-\begin{tabular}{ {{ taskcol(POINT_ARRAY) }} }
-{{ points(POINT_ARRAY) }}
+\begin{tabular}{ | {{ taskColLeftSep(POINT_ARRAY) }} l |}
+\hline
+{{ shortname(SHORTNAME_ARRAY) }}   &amp;  $\Sigma$ \\
+/ {{ pointsof(POINT_ARRAY) }}   &amp;  /  {{ POINTSUM_TOTAL }} \\ \hline
 \end{tabular}
 \end{table}
 

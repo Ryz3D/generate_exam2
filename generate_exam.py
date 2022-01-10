@@ -246,6 +246,7 @@ def process_file(base: BaseFile):
             "TASKS": "",
             "POINTSUM_TOTAL": 0,
             "POINT_ARRAY": [],
+            "SHORTNAME_ARRAY": [],
             **generate_formatters(base.global_vars, base.generics.settings),
         }
 
@@ -305,6 +306,8 @@ def process_file(base: BaseFile):
                 jcontext_base["POINTSUM_TOTAL"] += s.points
                 jcontext_task["POINT_ARRAY_TASK"].append(s.points)
             jcontext_base["POINT_ARRAY"].append(jcontext_task["POINTSUM_TASK"])
+            #todo: If shortname (e.g. "Ü-Bonus" is availabe, replace by shortname. Else by current task number
+            jcontext_base["SHORTNAME_ARRAY"].append("DummySN")  
             jcontext_base["TASKS"] += (
                 jinja2.Template(t.generics.latex).render(jcontext_task)
                 + task_join

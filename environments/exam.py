@@ -30,6 +30,9 @@ def gen_env():
             "e_base":   lambda x, v: ftos(v.value / (10 ** math.floor(math.log10(v.value))), True),
             "e_expo":   lambda x, v: str(math.floor(math.log10(v.value))),
             "points":   lambda a: " & ".join(map(lambda f: str(f), a)),
+            "pointsof":   lambda a: " & / ".join(map(lambda f: str(f), a)),
             "taskcol":  lambda a: "l" * len(a),
+            "taskColLeftSep":  lambda a: "l|" * len(a),
+            "shortname" :   lambda a: " & ".join(map(lambda f: str(f), a)),
         }
     }
