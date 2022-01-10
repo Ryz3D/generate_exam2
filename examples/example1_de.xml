@@ -7,7 +7,7 @@ decimal_separator = "{,}"
 </settings>
 
 <variables>
-tasks = ["tasks/coil1_de", "tasks/coil2", "tasks/coil1_de"]
+tasks = ["tasks/coil1_de.xml", "tasks/coil2.xml", "tasks/coil1_de.xml"]
 
 import math
 pi = math.pi

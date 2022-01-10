@@ -23,7 +23,9 @@ default_context = {}
 default_formatters = {}
 
 comment_separator = "#"
-file_ext = ".xml"
+#file_ext = ".xml"
+output_dir = "generate"
+file_ext = ""
 
 class Variable:
     def __init__(self):
@@ -359,12 +361,13 @@ def generate_latex(path, sol):
     res1, res2 = process_file(load_base(path + file_ext))
 
     name = path.replace("\\", "/").split("/")[-1]
-    if not os.path.isdir("aux_files"):
-        os.mkdir("aux_files")
-    with open("aux_files/" + name + ".tex", "w", encoding="utf-8") as f:
+    name = os.path.splitext(name)[0]
+    if not os.path.isdir(output_dir):
+        os.mkdir(output_dir)
+    with open(output_dir + "/" + name + ".tex", "w", encoding="utf-8") as f:
         f.write(res1)
     if sol:
-        with open("aux_files/" + name + "_lösg.tex", "w", encoding="utf-8") as f:
+        with open(output_dir + "/" + name + "_sol.tex", "w", encoding="utf-8") as f:
             f.write(res2)
 
 # converts path from .tex to .pdf, returns nothing
@@ -372,7 +375,7 @@ def convert_pdf(path):
     name = path.replace("\\", "/").split("/")[-1]
     args = [
         "pdflatex",
-        "--output-directory=aux_files",
+        "--output-directory=" + output_dir,
         "-quiet",
         "-interaction",
         "nonstopmode",
@@ -388,19 +391,20 @@ def convert_pdf(path):
 
 # deletes .aux and .log files
 def clean_aux(del_tex):
-    for f in os.listdir("aux_files"):
+    for f in os.listdir(output_dir):
         if f.endswith(".aux") or f.endswith(".log") or f.endswith(".out"):
-            os.remove("aux_files/" + f)
+            os.remove(output_dir + "/" + f)
         if del_tex and f.endswith(".tex"):
-            os.remove("aux_files/" + f)
+            os.remove(output_dir + "/" + f)
 
 # handle file with cli options
 def handle_file(name, tex_only, sol):
     generate_latex(name, sol)
+    name = os.path.splitext(name)[0]
     if not tex_only:
         convert_pdf(name + ".tex")
         if sol:
-            convert_pdf(name + "_lösg.tex")
+            convert_pdf(name + "_sol.tex")
 
 def handle_folder(name, tex_only, sol):
     for f in os.listdir(name):
@@ -423,13 +427,14 @@ Options:
         -> Normally generates both files
     -k Keep log files (.aux .log .out)
     -d Delete .tex files too (keep only .pdf)
+    -o <OUTPUT DIRECTORY>
 """)
 
 def main():
     if "-h" in sys.argv or len(sys.argv) == 1:
         help()
         return
-
+    
     if os.path.isdir(sys.argv[-1]):
         handle_folder(sys.argv[-1], "-t" in sys.argv, not "-s" in sys.argv)
     else:
@@ -437,6 +442,8 @@ def main():
 
     if not "-k" in sys.argv:
         clean_aux("-d" in sys.argv)
+
+    #todo: Handle -o <OUTPUT DIRECTORY> and overwrite output_dir
 
 if __name__ == "__main__":
     main()
