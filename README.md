@@ -4,4 +4,4 @@
 
 Have a look at the [Wiki](https://github.com/Ryz3D/generate_exam2/wiki) if you want to learn more.
 
-And use the [Documentation](https://github.com/Ryz3D/generate_exam2/Documentation) as reference.
+And use the [Documentation](https://github.com/Ryz3D/generate_exam2/wiki/Documentation) as reference.
