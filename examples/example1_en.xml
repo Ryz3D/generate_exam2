@@ -6,7 +6,7 @@
 </settings>
 
 <variables>
-tasks = ["tasks/coil1_en"]
+TASK_FILES = ["tasks/coil1_en.xml"]
 
 import math
 pi = math.pi

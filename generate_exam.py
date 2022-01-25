@@ -1,10 +1,4 @@
-"""
-More info here: https://github.com/Ryz3D/generate_exam2
-
-TODO:
-    - plotting
-        - per variable? buffer and change parameter
-"""
+# https://github.com/Ryz3D/generate_exam2
 
 import xml.etree.ElementTree as ET
 import os, sys, subprocess, jinja2, importlib, environments._envhelper
@@ -23,12 +17,14 @@ default_context = {}
 default_formatters = {}
 
 comment_separator = "#"
-file_ext = ".xml"
+output_dir = "generate"
+
 
 class Variable:
     def __init__(self):
         self.value = 0
         self.expression = ""
+
 
 class GenericFile:
     def __init__(self):
@@ -36,10 +32,12 @@ class GenericFile:
         self.variables = {}
         self.latex = ""
 
+
 class Subtask:
     def __init__(self):
         self.points = 0
         self.latex = ""
+
 
 class TaskFile:
     def __init__(self):
@@ -47,12 +45,14 @@ class TaskFile:
         self.subtasks = []
         self.local_vars = {}
 
+
 class BaseFile:
     def __init__(self):
         self.generics = GenericFile()
         self.tasks = []
         self.exec_context = {}
         self.global_vars = {}
+
 
 def load_env(name):
     global default_settings
@@ -67,8 +67,14 @@ def load_env(name):
         default_context.update(e["context"])
         default_formatters.update(e["formatters"])
     except ModuleNotFoundError as err:
-        print("ERROR: environment \"" + name + "\" was not found")
+        print('ERROR: environment "' + name + '" was not found')
         raise err
+
+
+# returns unique human-readable name
+def path_to_name(path):
+    return path.split("/")[-1].split(".")[0]
+
 
 # parses generic "a = b # comment" syntax, returns dict
 # exception_cb: called with part of incorrect syntax
@@ -77,6 +83,7 @@ def parse_dict(text, exception_cb=None):
         return {}
 
     if exception_cb == None:
+
         def exception_cb(part):
             print('WARNING: could not parse "' + part + '"')
 
@@ -95,6 +102,7 @@ def parse_dict(text, exception_cb=None):
 
     return dic
 
+
 # parses settings from text definition, returns dict, omitted settings are set to defaults
 # base_settings: used instead of default settings
 def parse_settings(text, base_settings=None):
@@ -110,6 +118,7 @@ def parse_settings(text, base_settings=None):
 
     return settings
 
+
 # parses variables from text definition, returns dict with Variable objects
 # base: BaseFile to execute for
 def parse_vars(text, base: BaseFile):
@@ -120,11 +129,13 @@ def parse_vars(text, base: BaseFile):
 
     return vars
 
+
 # loads generic data from file, returns GenericFile
 # extra_handler: called to handle unknown tags
 # base: if a task is being loaded, pass its corresponding base, else itself
 def load_generic(path, base: BaseFile, extra_handler=None):
     if extra_handler == None:
+
         def extra_handler(e):
             print("WARNING: unknown tag <" + e.tag + '> in file "' + path + '"')
 
@@ -141,6 +152,11 @@ def load_generic(path, base: BaseFile, extra_handler=None):
         elif e.tag == "latex":
             generic.latex = e.text
             has_latex = True
+        elif e.tag == "latexfile":
+            rel_path = "/".join(path.split("/")[:-1]) + "/"
+            with open(rel_path + e.text.strip(), encoding="utf-8") as f:
+                generic.latex = f.read()
+            has_latex = True
         else:
             extra_handler(e)
 
@@ -148,6 +164,7 @@ def load_generic(path, base: BaseFile, extra_handler=None):
         raise AssertionError('Missing <latex> tag in file "' + path + '"')
 
     return generic
+
 
 # loads task file from path, returns TaskFile
 # base: corresponding BaseFile
@@ -177,6 +194,7 @@ def load_task(path, base: BaseFile):
 
     return task
 
+
 # sets variables from definition, returns dict
 def set_vars(variables, context):
     vars = {}
@@ -194,9 +212,10 @@ def set_vars(variables, context):
 
     return vars
 
+
 # generates formatter handler to add variable data into formatter call
 def generate_single_formatter(vars, func, settings):
-    def handler(key = None, *args):
+    def handler(key=None, *args):
         environments._envhelper.settings = settings
         environments._envhelper.vars = vars
 
@@ -206,7 +225,11 @@ def generate_single_formatter(vars, func, settings):
             try:
                 value = vars[key]
             except KeyError as err:
-                print("WARNING: could not find variable \"" + err.args[0] + "\". passing as string")
+                print(
+                    'WARNING: could not find variable "'
+                    + err.args[0]
+                    + '". passing as string'
+                )
                 return func(key, *args)
             return func(environments._envhelper.symbol_to_tex(key), value, *args)
         else:
@@ -217,6 +240,7 @@ def generate_single_formatter(vars, func, settings):
 
     return handler
 
+
 # generates dictionary of formatter handlers for all formatters
 def generate_formatters(vars, s):
     results = {}
@@ -225,6 +249,7 @@ def generate_formatters(vars, s):
         results[name] = generate_single_formatter(vars, func, s)
 
     return results
+
 
 # finishes processing and inserts data, returns processed latex as string tuple (no_sol, sol)
 def process_file(base: BaseFile):
@@ -244,6 +269,7 @@ def process_file(base: BaseFile):
             "TASKS": "",
             "POINTSUM_TOTAL": 0,
             "POINT_ARRAY": [],
+            "SHORTNAME_ARRAY": [],
             **generate_formatters(base.global_vars, base.generics.settings),
         }
 
@@ -256,7 +282,8 @@ def process_file(base: BaseFile):
             else:
                 jcontext_shared[k] = v.value
 
-        for t in base.tasks:
+        for t_index in range(len(base.tasks)):
+            t = base.tasks[t_index]
             jvars = {}
             environments._envhelper.settings = t.generics.settings
             for k, v in t.local_vars.items():
@@ -276,7 +303,7 @@ def process_file(base: BaseFile):
                         **base.global_vars,
                         **t.local_vars,
                     },
-                    t.generics.settings
+                    t.generics.settings,
                 ),
             }
 
@@ -292,28 +319,36 @@ def process_file(base: BaseFile):
                             **base.global_vars,
                             **t.local_vars,
                         },
-                        t.generics.settings
+                        t.generics.settings,
                     ),
                 }
                 jcontext_task["SUBTASKS"] += (
                     # if there is an UndefinedError here, a formatter or variable could not be found
-                    jinja2.Template(s.latex).render(jcontext_subtask) + subtask_join
+                    jinja2.Template(s.latex).render(jcontext_subtask)
+                    + subtask_join
                 )
                 jcontext_task["POINTSUM_TASK"] += s.points
                 jcontext_base["POINTSUM_TOTAL"] += s.points
                 jcontext_task["POINT_ARRAY_TASK"].append(s.points)
             jcontext_base["POINT_ARRAY"].append(jcontext_task["POINTSUM_TASK"])
+            jcontext_base["SHORTNAME_ARRAY"].append(
+                jcontext_task["SHORT_NAME"]
+                if "SHORT_NAME" in jcontext_task
+                else "A" + str(t_index + 1)
+            )
             jcontext_base["TASKS"] += (
-                jinja2.Template(t.generics.latex).render(jcontext_task)
-                + task_join
+                jinja2.Template(t.generics.latex).render(jcontext_task) + task_join
             )
 
         # adds final result to tuple
-        result += (jinja2.Template(base.generics.latex).render(
-            {**jcontext_shared, **jcontext_base}
-        ), )
+        result += (
+            jinja2.Template(base.generics.latex).render(
+                {**jcontext_shared, **jcontext_base}
+            ),
+        )
 
     return result
+
 
 # loads base file from path, returns BaseFile
 def load_base(path):
@@ -338,45 +373,48 @@ def load_base(path):
     base.generics = load_generic(path, base, base_extra)
 
     if not env_loaded:
-        print("WARNING: no environment loaded in file \"" + path + "\"")
+        print('WARNING: no environment loaded in file "' + path + '"')
 
-    if not "tasks" in base.generics.variables:
-        print("WARNING: no \"tasks\" in file \"" + path + "\"")
+    if not "TASK_FILES" in base.generics.variables:
+        print('WARNING: no "TASK_FILES" in file "' + path + '"')
         base.tasks = []
     else:
-        path_parts = path.replace("\\", "/").split("/")
-        rel_path = ""
-        for p in range(len(path_parts) - 1):
-            rel_path += path_parts[p] + "/"
-        for t in eval(base.generics.variables["tasks"]):
-            base.tasks.append(load_task(rel_path + t + file_ext, base))
-        del base.generics.variables["tasks"]
+        rel_path = "/".join(path.split("/")[:-1]) + "/"
+        for t in eval(base.generics.variables["TASK_FILES"]):
+            base.tasks.append(load_task(rel_path + t, base))
+        del base.generics.variables["TASK_FILES"]
 
     return base
 
+
 # renders file with and without solution, returns nothing
 def generate_latex(path, sol):
-    res1, res2 = process_file(load_base(path + file_ext))
+    res1, res2 = process_file(load_base(path))
 
-    name = path.replace("\\", "/").split("/")[-1]
-    if not os.path.isdir("aux_files"):
-        os.mkdir("aux_files")
-    with open("aux_files/" + name + ".tex", "w", encoding="utf-8") as f:
+    name = path_to_name(path)
+    if not os.path.isdir(output_dir):
+        os.mkdir(output_dir)
+    print('Generating "' + name + '"')
+    with open(output_dir + "/" + name + ".tex", "w", encoding="utf-8") as f:
         f.write(res1)
     if sol:
-        with open("aux_files/" + name + "_lösg.tex", "w", encoding="utf-8") as f:
+        print('Generating solution "' + name + '_sol"')
+        with open(output_dir + "/" + name + "_sol.tex", "w", encoding="utf-8") as f:
             f.write(res2)
+
 
 # converts path from .tex to .pdf, returns nothing
 def convert_pdf(path):
-    name = path.replace("\\", "/").split("/")[-1]
+    name = path_to_name(path)
+    print('Generating pdf "' + name + '"')
+
     args = [
         "pdflatex",
-        "--output-directory=aux_files",
+        "--output-directory=" + output_dir,
         "-quiet",
         "-interaction",
         "nonstopmode",
-        "\"" + name + "\"",
+        '"' + name + '"',
     ]
 
     proc = subprocess.Popen(args, stdout=subprocess.PIPE)
@@ -386,57 +424,86 @@ def convert_pdf(path):
     if comm[0]:
         print("pdflatex: " + comm[0].decode("utf-8"))
 
+
 # deletes .aux and .log files
-def clean_aux(del_tex):
-    for f in os.listdir("aux_files"):
-        if f.endswith(".aux") or f.endswith(".log") or f.endswith(".out"):
-            os.remove("aux_files/" + f)
-        if del_tex and f.endswith(".tex"):
-            os.remove("aux_files/" + f)
+def clean_aux():
+    for f in os.listdir(output_dir):
+        if (
+            f.endswith(".aux")
+            or f.endswith(".log")
+            or f.endswith(".out")
+            or f.endswith(".tex")
+        ):
+            os.remove(output_dir + "/" + f)
+
 
 # handle file with cli options
-def handle_file(name, tex_only, sol):
-    generate_latex(name, sol)
-    if not tex_only:
+def handle_file(path, convert_mode, sol):
+    generate_latex(path, sol)
+    name = path_to_name(path)
+    for i in range(convert_mode):
         convert_pdf(name + ".tex")
         if sol:
-            convert_pdf(name + "_lösg.tex")
+            convert_pdf(name + "_sol.tex")
 
-def handle_folder(name, tex_only, sol):
+
+# handle folder with cli options
+def handle_folder(name, convert_mode, sol):
     for f in os.listdir(name):
-        p = os.path.join(name, f)
+        p = name + "/" + f
         if os.path.isfile(p):
-            handle_file(p[:-4], tex_only, sol)
+            handle_file(p, convert_mode, sol)
+
 
 def help():
-    print("""
+    print(
+        """
 generate_exam.py V2
 
 Usage:
     python generate_exam.py [OPTIONS] [FILE/FOLDER]
 
 Options:
-    -h Help
-    -t Generate TeX only, no pdf conversion
-        -> Without this flag pdflatex is required!
-    -s Generate no-solution only
-        -> Normally generates both files
-    -k Keep log files (.aux .log .out)
-    -d Delete .tex files too (keep only .pdf)
-""")
+    -h   Help
+    -s   Don't generate solution
+          -> Task and solution by default
+    -k   Keep LaTeX files (.aux .log .out .tex)
+    -o [OUTPUT FOLDER] Set output folder for all files
+    -p   Generate pdf (twice)
+    -p1  Generate pdf once (faster, but might break LaTeX lastpage)
+"""
+    )
+
 
 def main():
-    if "-h" in sys.argv or len(sys.argv) == 1:
+    global output_dir
+
+    if "-h" in sys.argv or "--help" in sys.argv or len(sys.argv) == 1:
         help()
         return
 
-    if os.path.isdir(sys.argv[-1]):
-        handle_folder(sys.argv[-1], "-t" in sys.argv, not "-s" in sys.argv)
+    if "-o" in sys.argv:
+        output_dir = sys.argv[sys.argv.index("-o") + 1]
+        output_dir = output_dir.replace("\\", "/").rstrip("/")
+
+    target = sys.argv[-1].replace("\\", "/")
+    convert_mode = 0
+    if "-p1" in sys.argv:
+        convert_mode = 1
+    if "-p" in sys.argv:
+        convert_mode = 2
+    sol = not "-s" in sys.argv
+
+    if os.path.isdir(target):
+        handle_folder(target, convert_mode, sol)
+    elif os.path.isfile(target):
+        handle_file(target, convert_mode, sol)
     else:
-        handle_file(sys.argv[-1], "-t" in sys.argv, not "-s" in sys.argv)
+        print('Target "' + target + '" not found')
 
     if not "-k" in sys.argv:
-        clean_aux("-d" in sys.argv)
+        clean_aux()
+
 
 if __name__ == "__main__":
     main()
