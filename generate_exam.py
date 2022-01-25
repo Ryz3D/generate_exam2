@@ -10,6 +10,7 @@ factory_settings = {
     "subtask_join": "\\n",
     "e_max": "2",
     "e_min": "-2",
+    "short_name_format": "A{}",
 }
 
 default_settings = {}
@@ -269,7 +270,7 @@ def process_file(base: BaseFile):
             "TASKS": "",
             "POINTSUM_TOTAL": 0,
             "POINT_ARRAY": [],
-            "SHORTNAME_ARRAY": [],
+            "SHORT_NAME_ARRAY": [],
             **generate_formatters(base.global_vars, base.generics.settings),
         }
 
@@ -331,10 +332,10 @@ def process_file(base: BaseFile):
                 jcontext_base["POINTSUM_TOTAL"] += s.points
                 jcontext_task["POINT_ARRAY_TASK"].append(s.points)
             jcontext_base["POINT_ARRAY"].append(jcontext_task["POINTSUM_TASK"])
-            jcontext_base["SHORTNAME_ARRAY"].append(
+            jcontext_base["SHORT_NAME_ARRAY"].append(
                 jcontext_task["SHORT_NAME"]
                 if "SHORT_NAME" in jcontext_task
-                else "A" + str(t_index + 1)
+                else base.generics.settings["short_name_format"].format(t_index + 1)
             )
             jcontext_base["TASKS"] += (
                 jinja2.Template(t.generics.latex).render(jcontext_task) + task_join
@@ -382,12 +383,11 @@ def load_base(path):
         rel_path = "/".join(path.split("/")[:-1]) + "/"
         for t in eval(base.generics.variables["TASK_FILES"]):
             base.tasks.append(load_task(rel_path + t, base))
-        del base.generics.variables["TASK_FILES"]
 
     return base
 
 
-# renders file with and without solution, returns nothing
+# renders file, optionally with solution, returns nothing
 def generate_latex(path, sol):
     res1, res2 = process_file(load_base(path))
 
@@ -451,7 +451,7 @@ def handle_file(path, convert_mode, sol):
 def handle_folder(name, convert_mode, sol):
     for f in os.listdir(name):
         p = name + "/" + f
-        if os.path.isfile(p):
+        if os.path.isfile(p) and f.endswith(".xml"):
             handle_file(p, convert_mode, sol)
 
 

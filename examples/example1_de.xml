@@ -19,40 +19,8 @@ semester = "WS 2021"
 empty = "\\vspace{\\baselineskip}"
 </variables>
 
-<latex>
-\documentclass{article}
-\usepackage{geometry}
-\usepackage{fancyhdr}
-\usepackage{lastpage}
-\usepackage{amsmath}
-\usepackage{textgreek}
-
-\geometry{
-a4paper,
-total={170mm,257mm},
-left=20mm,
-top=20mm,
-}
-
-\pagestyle{fancy}
-\fancyhf{}
-\fancyhead[RE,LO]{Name:}
-\fancyfoot[RE,LO]{Gesamtpunktzahl: {{ POINTSUM_TOTAL }}P}
-\fancyfoot[LE,RO]{Seite \thepage/\pageref{LastPage}}
-
-\begin{document}
-
-Fachbereich {{ fach }} / {{ semester }}
-
-\begin{table}[]
-\begin{tabular}{ {{ taskcol(POINT_ARRAY) }} }
-{{ points(POINT_ARRAY) }}
-\end{tabular}
-\end{table}
-
-{{ TASKS }}
-
-\end{document}
-</latex>
+<latexfile>
+example1_de.jtex
+</latexfile>
 
 </xml>

@@ -1,0 +1,35 @@
+\documentclass{article}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{amsmath}
+\usepackage{textgreek}
+
+\geometry{
+a4paper,
+total={170mm,257mm},
+left=20mm,
+top=20mm,
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[RE,LO]{Name:}
+\fancyfoot[RE,LO]{Gesamtpunktzahl: {{ POINTSUM_TOTAL }}P}
+\fancyfoot[LE,RO]{Seite \thepage/\pageref{LastPage}}
+
+\begin{document}
+
+Fachbereich {{ fach }} / {{ semester }}
+
+\begin{table}[!h]
+\begin{tabular}{ | {{ taskColLeftSep(POINT_ARRAY) }} l |}
+\hline
+{{ shortname(SHORT_NAME_ARRAY) }} & \textSigma \\
+{{ points(POINT_ARRAY) }} & / {{ POINTSUM_TOTAL }} \\ \hline
+\end{tabular}
+\end{table}
+
+{{ TASKS }}
+
+\end{document}
