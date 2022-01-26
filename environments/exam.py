@@ -1,6 +1,22 @@
 import environments._envhelper
 from environments._envhelper import ftos, symbol_to_tex
 import math, random
+from datetime import datetime
+
+def date():
+    return datetime(*reversed(environments._envhelper.vars["date"].value))
+
+def year():
+    form = "{time} {year}"
+    summer = "SoSe"
+    winter = "WiSe"
+    if date().month <= 3:
+        return form.format_map({"time": winter,"year": date().year - 1})
+    else:
+        return form.format_map({
+            "time": summer if date().month <= 9 else winter,
+            "year": date().year,
+        })
 
 def gen_env():
     return {
@@ -17,10 +33,13 @@ def gen_env():
         # functions used in variable definition
         "context": {
             "rand":     lambda min, max, step: random.randint(0, int((max - min) / step)) * step + min,
+            "shuffle":  lambda l: random.sample(l, len(l)),
         },
 
         # formatters used in latex
         "formatters": {
+            "year":     year,
+            "date":     lambda: date().strftime("%d.%m.%Y"),
             "dec":      lambda: environments._envhelper.settings["decimal_separator"],
             "val":      lambda x, v: ftos(v.value),
             "geg":      lambda x, v: "${}={}$".format(x, ftos(v.value)),

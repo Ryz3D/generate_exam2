@@ -1,0 +1,67 @@
+<xml>
+
+<settings>
+</settings>
+
+<variables>
+from math import atan, sin
+
+m = rand(800, 2300, 10)
+a = rand(2, 8, 0.1)
+i = rand(5, 15, 1)
+F_H = m * g * sin(atan(i))
+F_a = m * a
+F = F_H + F_a
+l = 10
+W = F * l
+</variables>
+
+<latex>
+\section*{Aufgabe {{ TASK_N }} - Hangabtriebskraft beim KFZ ({{ POINTSUM_TASK }}P)}
+
+Ein {{ geg("m") }}kg schweres Auto fährt auf einer Straße mit der Steigung {{ geg("i") }}\% und beschleunigt dabei mit {{ geg("a") }}$\frac{\text{m}}{\text{s}^2}$.
+
+{{ SUBTASKS }}
+</latex>
+
+<subtask>
+<points>5</points>
+<latex>
+\subsection*{Aufgabe {{ TASK_N }}.{{ SUBTASK_N }}}
+
+Welche Kraft wird benötigt um die Steigung zu bewältigen und welche Kraft um das Fahrzeug zu beschleunigen? Wie groß ist die Kraft, die insgesamt aufgebracht wird?
+
+{% if SHOW_SOL %}
+{{ empty }}
+\textbf{Lösung}:
+
+${{ sol("F_H") }}$N
+
+${{ sol("F_a") }}$N
+
+${{ sol("F") }}$N
+{% else %}
+\vspace{60px}
+{% endif %}
+</latex>
+</subtask>
+
+<subtask>
+<points>2</points>
+<latex>
+\subsection*{Aufgabe {{ TASK_N }}.{{ SUBTASK_N }}}
+
+Welche Arbeit wird beim Fahren einer Strecke von {{ geg("l") }}m verrichtet?
+
+{% if SHOW_SOL %}
+{{ empty }}
+\textbf{Lösung}:
+
+${{ sol("W") }}$J
+{% else %}
+\vspace{35px}
+{% endif %}
+</latex>
+</subtask>
+
+</xml>

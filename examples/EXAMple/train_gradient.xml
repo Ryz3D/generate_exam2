@@ -1,0 +1,75 @@
+<xml>
+
+<settings>
+e_max = 3
+</settings>
+
+<variables>
+m_L = rand(50, 200, 10)
+m = rand(500, 3000, 10) + m_L
+i = rand(0.1, 2, 0.01)
+mu = rand(0.05, 0.2, 0.01)
+R = m * g * i / 100
+R_2 = (m - m_L) * g * i / 100
+F = m_L * g * mu
+</variables>
+
+<latex>
+\section*{Aufgabe {{ TASK_N }} - Haftreibung bei der Eisenbahn ({{ POINTSUM_TASK }}P)}
+
+Eine Eisenbahn von {{ geg("m") }}t wird von einer Lokomotive mit der Masse {{ geg("m_L") }}t angetrieben und steht auf einer Strecke mit der Steigung {{ geg("i") }}\%.
+
+{{ SUBTASKS }}
+</latex>
+
+<subtask>
+<points>3</points>
+<latex>
+\subsection*{Aufgabe {{ TASK_N }}.{{ SUBTASK_N }}}
+
+Der Reibungskoeffizient zwischen Eisenbahnrad und Schiene liegt bei {{ geg("mu") }}.
+
+Kann die Lok in der Steigung anfahren?
+
+{% if SHOW_SOL %}
+{{ empty }}
+\textbf{Lösung}:
+
+Hangabtriebskraft:
+${{ sol("R") }}$kN
+\\
+Anfahrzugkraft:
+${{ sol("F") }}$kN
+\\}}
+{% if F > R %}
+Da $F > R$ gilt, kann der Zug reibungstechnisch anfahren.
+{% else %}
+Da $F &lt; R$ gilt, würden die Räder ins Schleudern geraten und der Zug finge an sich rückwärts zu bewegen.
+{% endif %}
+{% else %}
+\vspace{71px}
+{% endif %}
+</latex>
+</subtask>
+
+<subtask>
+<points>2</points>
+<latex>
+\subsection*{Aufgabe {{ TASK_N }}.{{ SUBTASK_N }}: Es gibt einen Haken}
+
+Welche Kraft wirkt in diesem Gefälle auf den Zughaken der Kupplung direkt hinter der Lok?
+
+{% if SHOW_SOL %}
+{{ empty }}
+\textbf{Lösung}:
+
+Es handelt sich um die Hangabtriebskraft, jedoch mit der Masse des Zuges ohne der Lok:
+
+${{ sol("R_2") }}$kN
+{% else %}
+\vspace{49px}
+{% endif %}
+</latex>
+</subtask>
+
+</xml>

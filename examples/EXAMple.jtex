@@ -1,0 +1,53 @@
+\documentclass{article}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{amsmath}
+\usepackage{textgreek}
+\usepackage{xcolor}
+
+\geometry{
+a4paper,
+total={170mm,257mm},
+left=20mm,
+top=20mm,
+}
+\setlength{\parindent}{0pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[RE,LO]{Name:}
+\fancyfoot[RE,LO]{Gesamtpunktzahl: {{ POINTSUM_TOTAL }}P}
+\fancyfoot[CE, CO]{Seite \thepage /\pageref{LastPage}}
+
+\begin{document}
+
+{% if SHOW_SOL %}
+\part*{ \centerline{\textcolor{red}{Lösung}} }
+{% endif %}
+
+\part*{ {{ subject }} }
+\section*{– Schriftliche Prüfung –}
+
+Fachbereich MND / {{ year() }}\\
+
+{{ date() }}\\
+Bearbeitungsdauer: 90 min\\
+
+Technische Hochschule Mittelhessen\\
+Fachbereich MND\\
+Mirco Heitmann\\
+
+\begin{table}[!h]
+\begin{tabular}{ | {{ taskColLeftSep(POINT_ARRAY) }} l |}
+\hline
+{{ shortname(SHORT_NAME_ARRAY) }} & \textSigma \\
+{{ points(POINT_ARRAY) }} & / {{ POINTSUM_TOTAL }} \\ \hline
+\end{tabular}
+\end{table}
+
+\newpage
+
+{{ TASKS }}
+
+\end{document}

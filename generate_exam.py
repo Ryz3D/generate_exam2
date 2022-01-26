@@ -96,7 +96,7 @@ def parse_dict(text, exception_cb=None):
             if part != "":
                 if "=" in part:
                     key = part.split("=")[0].strip()
-                    value = part.split("=")[1].strip()
+                    value = "=".join(part.split("=")[1:]).strip()
                     dic[key] = value
                 else:
                     exception_cb(part)
@@ -146,16 +146,17 @@ def load_generic(path, base: BaseFile, extra_handler=None):
     has_latex = False
 
     for e in xml.getroot():
+        txt = e.text
         if e.tag == "settings":
-            generic.settings = parse_settings(e.text, base.generics.settings)
+            generic.settings = parse_settings(txt, base.generics.settings)
         elif e.tag == "variables":
-            generic.variables = parse_vars(e.text, base)
+            generic.variables = parse_vars(txt, base)
         elif e.tag == "latex":
-            generic.latex = e.text
+            generic.latex = txt
             has_latex = True
         elif e.tag == "latexfile":
             rel_path = "/".join(path.split("/")[:-1]) + "/"
-            with open(rel_path + e.text.strip(), encoding="utf-8") as f:
+            with open(rel_path + txt.strip(), encoding="utf-8") as f:
                 generic.latex = f.read()
             has_latex = True
         else:
@@ -179,10 +180,10 @@ def load_task(path, base: BaseFile):
                 if e_child.tag == "points":
                     try:
                         sub.points = int(e_child.text)
-                    except ValueError:
+                    except (ValueError, TypeError):
                         print(
                             "ERROR: Could not parse tag <points>"
-                            + e_child.text
+                            + (e_child.text or "")
                             + "</points> as int"
                         )
                 elif e_child.tag == "latex":
@@ -293,12 +294,10 @@ def process_file(base: BaseFile):
                 else:
                     jvars[k] = v.value
 
-            jcontext_task = {
-                **jcontext_shared,
-                **jvars,
-                "SUBTASKS": "",
+            jcontext_task_shared = {
                 "POINTSUM_TASK": 0,
                 "POINT_ARRAY_TASK": [],
+                "TASK_N": t_index + 1,
                 **generate_formatters(
                     {
                         **base.global_vars,
@@ -307,14 +306,23 @@ def process_file(base: BaseFile):
                     t.generics.settings,
                 ),
             }
+            jcontext_task = {
+                **jcontext_shared,
+                **jcontext_task_shared,
+                **jvars,
+                "SUBTASKS": "",
+            }
 
             subtask_join = t.generics.settings["subtask_join"].replace("\\n", "\n")
 
-            for s in t.subtasks:
+            for s_index in range(len(t.subtasks)):
+                s = t.subtasks[s_index]
                 jcontext_subtask = {
                     **jcontext_shared,
+                    **jcontext_task_shared,
                     **jvars,
                     "POINTS": s.points,
+                    "SUBTASK_N": s_index + 1,
                     **generate_formatters(
                         {
                             **base.global_vars,
@@ -376,12 +384,14 @@ def load_base(path):
     if not env_loaded:
         print('WARNING: no environment loaded in file "' + path + '"')
 
-    if not "TASK_FILES" in base.generics.variables:
+    base.exec_context = default_context
+    temp_vars = set_vars(base.generics.variables, base.exec_context)
+    if not "TASK_FILES" in temp_vars:
         print('WARNING: no "TASK_FILES" in file "' + path + '"')
         base.tasks = []
     else:
         rel_path = "/".join(path.split("/")[:-1]) + "/"
-        for t in eval(base.generics.variables["TASK_FILES"]):
+        for t in temp_vars["TASK_FILES"].value:
             base.tasks.append(load_task(rel_path + t, base))
 
     return base

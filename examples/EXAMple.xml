@@ -1,0 +1,27 @@
+<xml>
+
+<env>exam</env>
+
+<settings>
+decimal_separator = "{,}"
+task_join = "\vspace{\baselineskip}"
+</settings>
+
+<variables>
+TASK_FILES = shuffle(["EXAMple/car_gradient.xml", "EXAMple/train_gradient.xml"])
+
+pi = 3.141592
+g = 9.81
+
+date = (23, 2, 2022)
+subject = "Grundlegendes Allgemeinwissen - Prüfung 1"
+empty = "\\vspace{\\baselineskip}"
+
+# generate sketches
+</variables>
+
+<latexfile>
+EXAMple.jtex
+</latexfile>
+
+</xml>

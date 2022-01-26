@@ -11,7 +11,7 @@
             "program": "generate_exam.py",
             "args": [
                 "-p",
-                "examples"
+                "examples/EXAMple.xml"
             ],
             "console": "integratedTerminal"
         }
