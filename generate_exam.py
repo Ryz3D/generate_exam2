@@ -187,9 +187,11 @@ def load_task(path, base: BaseFile):
                             + "</points> as int"
                         )
                 elif e_child.tag == "latex":
-                    sub.latex = (e_child.text or "").strip() + (
-                        e_child.tail or ""
-                    ).strip()
+                    sub.latex = (e_child.text or "").strip()
+                elif e_child.tag == "latexfile":
+                    rel_path = "/".join(path.split("/")[:-1]) + "/"
+                    with open(rel_path + (e_child.text or "").strip(), encoding="utf-8") as f:
+                        sub.latex = f.read().strip()
             task.subtasks.append(sub)
 
     task.generics = load_generic(path, base, task_extra)
