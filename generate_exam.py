@@ -515,7 +515,7 @@ def main():
     else:
         print('Target "' + target + '" not found')
 
-    if not "-k" in sys.argv:
+    if not "-k" in sys.argv and convert_mode > 0:
         clean_aux()
 
 
