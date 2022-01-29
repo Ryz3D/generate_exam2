@@ -190,7 +190,9 @@ def load_task(path, base: BaseFile):
                     sub.latex = (e_child.text or "").strip()
                 elif e_child.tag == "latexfile":
                     rel_path = "/".join(path.split("/")[:-1]) + "/"
-                    with open(rel_path + (e_child.text or "").strip(), encoding="utf-8") as f:
+                    with open(
+                        rel_path + (e_child.text or "").strip(), encoding="utf-8"
+                    ) as f:
                         sub.latex = f.read().strip()
             task.subtasks.append(sub)
 
@@ -200,18 +202,18 @@ def load_task(path, base: BaseFile):
 
 
 # sets variables from definition, returns dict
-def set_vars(variables, context):
+def set_vars(variables, base):
     vars = {}
 
     for k, v in variables.items():
         var = Variable()
         var.expression = v
         try:
-            exec("exec_output = " + v, context)
-            var.value = context[k] = context["exec_output"]
+            exec("exec_output = " + v, base.exec_context)
+            var.value = base.exec_context[k] = base.exec_context["exec_output"]
         except Exception as e:
             print('ERROR: Setting variable "' + k + " = " + v + '": ' + str(e))
-            context[k] = 0
+            base.exec_context[k] = 0
         vars[k] = var
 
     return vars
@@ -258,9 +260,9 @@ def generate_formatters(vars, s):
 # finishes processing and inserts data, returns processed latex as string tuple (no_sol, sol)
 def process_file(base: BaseFile):
     base.exec_context.update(**default_context)
-    base.global_vars = set_vars(base.generics.variables, base.exec_context)
+    base.global_vars = set_vars(base.generics.variables, base)
     for t in base.tasks:
-        t.local_vars = set_vars(t.generics.variables, base.exec_context)
+        t.local_vars = set_vars(t.generics.variables, base)
 
     result = ()
 
@@ -382,12 +384,12 @@ def load_base(path):
 
     base = BaseFile()
     base.generics = load_generic(path, base, base_extra)
+    base.exec_context.update(**default_context)
+    temp_vars = set_vars(base.generics.variables, base)
 
     if not env_loaded:
         print('WARNING: no environment loaded in file "' + path + '"')
 
-    base.exec_context = default_context
-    temp_vars = set_vars(base.generics.variables, base.exec_context)
     if not "TASK_FILES" in temp_vars:
         print('WARNING: no "TASK_FILES" in file "' + path + '"')
         base.tasks = []
@@ -406,11 +408,11 @@ def generate_latex(path, sol):
     name = path_to_name(path)
     if not os.path.isdir(output_dir):
         os.mkdir(output_dir)
-    print('Generating "' + name + '"')
+    print('Generating "' + name + '.tex"')
     with open(output_dir + "/" + name + ".tex", "w", encoding="utf-8") as f:
         f.write(res1)
     if sol:
-        print('Generating solution "' + name + '_sol"')
+        print('Generating solution "' + name + '_sol.tex"')
         with open(output_dir + "/" + name + "_sol.tex", "w", encoding="utf-8") as f:
             f.write(res2)
 
@@ -418,7 +420,7 @@ def generate_latex(path, sol):
 # converts path from .tex to .pdf, returns nothing
 def convert_pdf(path):
     name = path_to_name(path)
-    print('Generating pdf "' + name + '"')
+    print('Generating pdf "' + name + '.pdf"')
 
     args = [
         "pdflatex",
