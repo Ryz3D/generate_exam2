@@ -8,9 +8,11 @@ task_join = "\vspace{\baselineskip}"
 </settings>
 
 <variables>
-TASK_FILES = shuffle(["EXAMple/car_gradient.xml", "EXAMple/train_gradient.xml"])
+TASK_FILES = []
+TASK_FILES.append("train_gradient")
+TASK_FILES.append("car_gradient")
+TASK_FILES = shuffle(list(map(lambda s: "EXAMple/%s.xml" % s, TASK_FILES)))
 
-pi = 3.141592
 g = 9.81
 
 date = (23, 2, 2022)

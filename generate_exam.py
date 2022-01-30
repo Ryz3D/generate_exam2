@@ -30,7 +30,8 @@ class Variable:
 class GenericFile:
     def __init__(self):
         self.settings = {}
-        self.variables = {}
+        self.variables = []
+        self.definitions = {}
         self.latex = ""
 
 
@@ -42,14 +43,14 @@ class Subtask:
 
 class TaskFile:
     def __init__(self):
-        self.generics = GenericFile()
+        self.generic = GenericFile()
         self.subtasks = []
         self.local_vars = {}
 
 
 class BaseFile:
     def __init__(self):
-        self.generics = GenericFile()
+        self.generic = GenericFile()
         self.tasks = []
         self.exec_context = {}
         self.global_vars = {}
@@ -79,7 +80,7 @@ def path_to_name(path):
 
 # parses generic "a = b # comment" syntax, returns dict
 # exception_cb: called with part of incorrect syntax
-def parse_dict(text, exception_cb=None):
+def parse_dict(text, exception_cb=None, any_cb=None):
     if text == None:
         return {}
 
@@ -94,12 +95,15 @@ def parse_dict(text, exception_cb=None):
         for part in line.split(";"):
             part = part.split(comment_separator)[0].strip()  # cuts off comments
             if part != "":
-                if "=" in part:
-                    key = part.split("=")[0].strip()
-                    value = "=".join(part.split("=")[1:]).strip()
-                    dic[key] = value
+                if any_cb == None:
+                    if "=" in part:
+                        key = part.split("=")[0].strip()
+                        value = "=".join(part.split("=")[1:]).strip()
+                        dic[key] = value
+                    else:
+                        exception_cb(part)
                 else:
-                    exception_cb(part)
+                    any_cb(part)
 
     return dic
 
@@ -121,14 +125,21 @@ def parse_settings(text, base_settings=None):
 
 
 # parses variables from text definition, returns dict with Variable objects
-# base: BaseFile to execute for
-def parse_vars(text, base: BaseFile):
-    def except_vars(part):
-        exec(part, base.exec_context)
+# generic: object to store output data
+def parse_vars(text, generic: GenericFile):
+    vars = []
+    definitions = {}
 
-    vars = parse_dict(text, except_vars)
+    def vars_cb(part):
+        if "=" in part:
+            key = part.split("=")[0].strip()
+            definitions[key] = "=".join(part.split("=")[1:]).strip()
+        vars.append(part)
 
-    return vars
+    parse_dict(text, None, vars_cb)
+
+    generic.variables.extend(vars)
+    generic.definitions.update(**definitions)
 
 
 # loads generic data from file, returns GenericFile
@@ -142,15 +153,15 @@ def load_generic(path, base: BaseFile, extra_handler=None):
 
     xml = ET.parse(path)
     generic = GenericFile()
-    generic.settings = base.generics.settings or default_settings
+    generic.settings = base.generic.settings or default_settings
     has_latex = False
 
     for e in xml.getroot():
         txt = e.text
         if e.tag == "settings":
-            generic.settings = parse_settings(txt, base.generics.settings)
+            generic.settings = parse_settings(txt, base.generic.settings)
         elif e.tag == "variables":
-            generic.variables = parse_vars(txt, base)
+            parse_vars(txt, generic)
         elif e.tag == "latex":
             generic.latex = txt
             has_latex = True
@@ -196,24 +207,26 @@ def load_task(path, base: BaseFile):
                         sub.latex = f.read().strip()
             task.subtasks.append(sub)
 
-    task.generics = load_generic(path, base, task_extra)
+    task.generic = load_generic(path, base, task_extra)
 
     return task
 
 
 # sets variables from definition, returns dict
-def set_vars(variables, base):
-    vars = {}
+# generic: object storing loaded variables, definitions
+# base: object containing context
+def set_vars(generic: GenericFile, base: BaseFile):
+    for code in generic.variables:
+        try:
+            exec(code, base.exec_context)
+        except Exception as e:
+            print('ERROR: Executing "' + code + '": ' + str(e))
 
-    for k, v in variables.items():
+    vars = {}
+    for k, v in generic.definitions.items():
         var = Variable()
         var.expression = v
-        try:
-            exec("exec_output = " + v, base.exec_context)
-            var.value = base.exec_context[k] = base.exec_context["exec_output"]
-        except Exception as e:
-            print('ERROR: Setting variable "' + k + " = " + v + '": ' + str(e))
-            base.exec_context[k] = 0
+        var.value = base.exec_context[k]
         vars[k] = var
 
     return vars
@@ -258,11 +271,21 @@ def generate_formatters(vars, s):
 
 
 # finishes processing and inserts data, returns processed latex as string tuple (no_sol, sol)
-def process_file(base: BaseFile):
+def process_file(base: BaseFile, path):
+    base.exec_context = {}
     base.exec_context.update(**default_context)
-    base.global_vars = set_vars(base.generics.variables, base)
+    base.global_vars = set_vars(base.generic, base)
+    base.tasks = []
+
+    if not "TASK_FILES" in base.global_vars:
+        print('WARNING: no "TASK_FILES" in file "' + path + '"')
+    else:
+        rel_path = "/".join(path.split("/")[:-1]) + "/"
+        for t in base.global_vars["TASK_FILES"].value:
+            base.tasks.append(load_task(rel_path + t, base))
+
     for t in base.tasks:
-        t.local_vars = set_vars(t.generics.variables, base)
+        t.local_vars = set_vars(t.generic, base)
 
     result = ()
 
@@ -276,12 +299,12 @@ def process_file(base: BaseFile):
             "POINTSUM_TOTAL": 0,
             "POINT_ARRAY": [],
             "SHORT_NAME_ARRAY": [],
-            **generate_formatters(base.global_vars, base.generics.settings),
+            **generate_formatters(base.global_vars, base.generic.settings),
         }
 
-        task_join = base.generics.settings["task_join"].replace("\\n", "\n")
+        task_join = base.generic.settings["task_join"].replace("\\n", "\n")
 
-        environments._envhelper.settings = base.generics.settings
+        environments._envhelper.settings = base.generic.settings
         for k, v in base.global_vars.items():
             if type(v.value) == type(0):
                 jcontext_shared[k] = environments._envhelper.ftos(v.value)
@@ -291,7 +314,7 @@ def process_file(base: BaseFile):
         for t_index in range(len(base.tasks)):
             t = base.tasks[t_index]
             jvars = {}
-            environments._envhelper.settings = t.generics.settings
+            environments._envhelper.settings = t.generic.settings
             for k, v in t.local_vars.items():
                 if type(v.value) == type(0):
                     jvars[k] = environments._envhelper.ftos(v.value)
@@ -307,7 +330,7 @@ def process_file(base: BaseFile):
                         **base.global_vars,
                         **t.local_vars,
                     },
-                    t.generics.settings,
+                    t.generic.settings,
                 ),
             }
             jcontext_task = {
@@ -317,7 +340,7 @@ def process_file(base: BaseFile):
                 "SUBTASKS": "",
             }
 
-            subtask_join = t.generics.settings["subtask_join"].replace("\\n", "\n")
+            subtask_join = t.generic.settings["subtask_join"].replace("\\n", "\n")
 
             for s_index in range(len(t.subtasks)):
                 s = t.subtasks[s_index]
@@ -332,7 +355,7 @@ def process_file(base: BaseFile):
                             **base.global_vars,
                             **t.local_vars,
                         },
-                        t.generics.settings,
+                        t.generic.settings,
                     ),
                 }
                 jcontext_task["SUBTASKS"] += (
@@ -347,15 +370,15 @@ def process_file(base: BaseFile):
             jcontext_base["SHORT_NAME_ARRAY"].append(
                 jcontext_task["SHORT_NAME"]
                 if "SHORT_NAME" in jcontext_task
-                else base.generics.settings["short_name_format"].format(t_index + 1)
+                else base.generic.settings["short_name_format"].format(t_index + 1)
             )
             jcontext_base["TASKS"] += (
-                jinja2.Template(t.generics.latex).render(jcontext_task) + task_join
+                jinja2.Template(t.generic.latex).render(jcontext_task) + task_join
             )
 
         # adds final result to tuple
         result += (
-            jinja2.Template(base.generics.latex).render(
+            jinja2.Template(base.generic.latex).render(
                 {**jcontext_shared, **jcontext_base}
             ),
         )
@@ -383,27 +406,17 @@ def load_base(path):
             env_loaded = True
 
     base = BaseFile()
-    base.generics = load_generic(path, base, base_extra)
-    base.exec_context.update(**default_context)
-    temp_vars = set_vars(base.generics.variables, base)
+    base.generic = load_generic(path, base, base_extra)
 
     if not env_loaded:
         print('WARNING: no environment loaded in file "' + path + '"')
-
-    if not "TASK_FILES" in temp_vars:
-        print('WARNING: no "TASK_FILES" in file "' + path + '"')
-        base.tasks = []
-    else:
-        rel_path = "/".join(path.split("/")[:-1]) + "/"
-        for t in temp_vars["TASK_FILES"].value:
-            base.tasks.append(load_task(rel_path + t, base))
 
     return base
 
 
 # renders file, optionally with solution, returns nothing
 def generate_latex(path, sol):
-    res1, res2 = process_file(load_base(path))
+    res1, res2 = process_file(load_base(path), path)
 
     name = path_to_name(path)
     if not os.path.isdir(output_dir):
