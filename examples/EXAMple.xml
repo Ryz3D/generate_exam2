@@ -1,5 +1,6 @@
 <xml>
 
+<env>choice</env>
 <env>exam</env>
 
 <settings>
@@ -11,6 +12,7 @@ task_join = "\vspace{\baselineskip}"
 TASK_FILES = []
 TASK_FILES.append("train_gradient")
 TASK_FILES.append("car_gradient")
+TASK_FILES.append("debugger_choice")
 TASK_FILES = shuffle(list(map(lambda s: "EXAMple/%s.xml" % s, TASK_FILES)))
 
 g = 9.81

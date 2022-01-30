@@ -30,7 +30,7 @@ class Variable:
 class GenericFile:
     def __init__(self):
         self.settings = {}
-        self.variables = []
+        self.var_code = ""
         self.definitions = {}
         self.latex = ""
 
@@ -127,18 +127,16 @@ def parse_settings(text, base_settings=None):
 # parses variables from text definition, returns dict with Variable objects
 # generic: object to store output data
 def parse_vars(text, generic: GenericFile):
-    vars = []
     definitions = {}
 
     def vars_cb(part):
         if "=" in part:
             key = part.split("=")[0].strip()
             definitions[key] = "=".join(part.split("=")[1:]).strip()
-        vars.append(part)
 
     parse_dict(text, None, vars_cb)
 
-    generic.variables.extend(vars)
+    generic.var_code = text
     generic.definitions.update(**definitions)
 
 
@@ -216,11 +214,10 @@ def load_task(path, base: BaseFile):
 # generic: object storing loaded variables, definitions
 # base: object containing context
 def set_vars(generic: GenericFile, base: BaseFile):
-    for code in generic.variables:
-        try:
-            exec(code, base.exec_context)
-        except Exception as e:
-            print('ERROR: Executing "' + code + '": ' + str(e))
+    try:
+        exec(generic.var_code, base.exec_context)
+    except Exception as e:
+        print('ERROR: Executing "' + generic.var_code + '": ' + str(e))
 
     vars = {}
     for k, v in generic.definitions.items():

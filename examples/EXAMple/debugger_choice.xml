@@ -1,0 +1,38 @@
+<xml>
+
+<settings>
+</settings>
+
+<variables>
+init_choice(0, [
+    '"Entwanzer"'
+], [
+    '"Debugger"',
+    '"Ungeziefergift"',
+    '"Paradigmenunabhängiges Softwareanomalieentfernungshilfswerkzeug"',
+    'Was ist ein Debugger?'
+])
+</variables>
+
+<latex>
+\section*{Aufgabe {{ TASK_N }} - Informatik ({{ POINTSUM_TASK }}P)}
+
+{{ SUBTASKS }}
+</latex>
+
+<subtask>
+<points>22</points>
+<latex>
+\subsection*{Aufgabe {{ TASK_N }}.{{ SUBTASK_N }}}
+
+Was ist die korrekte Bezeichnung für einen Debugger?
+{{ empty }}
+{% if SHOW_SOL %}
+{{ choice_sol(0) }}
+{% else %}
+{{ choice_task(0) }}
+{% endif %}
+</latex>
+</subtask>
+
+</xml>
